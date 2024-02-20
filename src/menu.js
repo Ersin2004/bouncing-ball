@@ -1,74 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import settings from "./settings";
 
-const Menu = ({ onStartAnimation, onUpdateSettings }) => {
-  const [speed, setSpeed] = useState(0.3);
-  const [gravity, setGravity] = useState(0.5);
-  const [color, setColor] = useState('black');
-  const [songName, setSongName] = useState('Turkish March - Mozart');
+const Menu = ({ onStartAnimation, onUpdateBallSettings }) => {
+  const [settingsState, setSettingsState] = useState(settings.defaultSettings);
 
   const handleStartAnimation = () => {
-    onStartAnimation(speed, gravity, color);
+    onStartAnimation(settingsState);
+    console.log("Settings:", settingsState);
   };
 
-  const handleSpeedChange = (e) => {
-    const newSpeed = parseFloat(e.target.value);
-    setSpeed(newSpeed);
-    onUpdateSettings({ speed: newSpeed, gravity, color });
-  };
+  const handleChange = (e, key) => {
+    const value = ["speedIncrement", "gravity"].includes(key)
+      ? parseFloat(e.target.value)
+      : e.target.value;
 
-  const handleGravityChange = (e) => {
-    const newGravity = parseFloat(e.target.value);
-    setGravity(newGravity);
-    onUpdateSettings({ speed, gravity: newGravity, color });
-  };
+    setSettingsState((prevSettingsState) => ({
+      ...prevSettingsState,
+      [key]: value,
+    }));
 
-  const handleColorChange = (e) => {
-    const newColor = e.target.value;
-    setColor(newColor);
-    onUpdateSettings({ speed, gravity, color: newColor });
+    if (key === "gravity") {
+      settings.defaultSettings.gravity = value;
+    } else {
+      settings.defaultSettings[key] = value;
+    }
   };
 
   return (
     <div className="absolute text-center">
       <div className="p-4">
-        <div className="mb-4">
-          Song: {songName}
+        <div className="mb-4 text-white">Song: {settingsState.songName}</div>
+        <div className="flex flex-wrap justify-around">
+          {Object.keys(settingsState).map((key) => {
+            if (key !== "songName") {
+              return (
+                <div
+                  key={key}
+                  className="p-4 border border-blue-500 rounded-md flex justify-center	flex-col"
+                >
+                  <label htmlFor={key} className="block mb-2 text-white">
+                    {key === "trailColor" ? "Trail Color" : key}
+                  </label>
+                  {key === "ballColor" || key === "trailColor" ? (
+                    <input
+                      id={key}
+                      type="color"
+                      value={settingsState[key]}
+                      onChange={(e) => handleChange(e, key)}
+                    />
+                  ) : (
+                    <input
+                      id={key}
+                      type="range"
+                      min={settings[key].min}
+                      max={settings[key].max}
+                      step={settings[key].step}
+                      value={settingsState[key]}
+                      onChange={(e) => handleChange(e, key)}
+                    />
+                  )}
+                  <span className="text-white">{settingsState[key]}</span>
+                </div>
+              );
+            }
+            return null;
+          })}
         </div>
-        <div className="flex justify-around">
-          <div className="cursor-pointer p-4 border border-blue-500">
-            Speed:
-            <input
-              type="range"
-              min="0.1"
-              max="2"
-              step="0.1"
-              value={speed}
-              onChange={handleSpeedChange}
-            />
-            {speed}
-          </div>
-          <div className="cursor-pointer p-4 border border-blue-500">
-            Gravity:
-            <input
-              type="range"
-              min="0.1"
-              max="2"
-              step="0.1"
-              value={gravity}
-              onChange={handleGravityChange}
-            />
-            {gravity}
-          </div>
-          <div className="cursor-pointer p-4 border border-blue-500">
-            Color:
-            <input
-              type="color"
-              value={color}
-              onChange={handleColorChange}
-            />
-          </div>
-        </div>
-        <button id="playButton" onClick={handleStartAnimation} className="mt-4 px-4 py-2 bg-green-500 text-white">Start Animation</button>
+        <button
+          onClick={handleStartAnimation}
+          className="mt-4 px-4 py-2 bg-green-500 text-white"
+        >
+          Start Animation
+        </button>
       </div>
     </div>
   );
